@@ -201,6 +201,7 @@ export const LEVELS: LevelDef[] = [
     rottenChance: 0,
     biome: "space",
     gravityMultiplier: 1.8,
+    integratedTreeInBackground: true,
   },
   {
     id: 9,

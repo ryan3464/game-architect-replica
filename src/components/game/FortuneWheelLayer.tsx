@@ -29,7 +29,7 @@ export function FortuneWheelLayer() {
           con margine chiaro così le due icone non si sovrappongono.
           NB: z-30 (sotto WeatherBanner z-20? no, banner è z-20) — la ruota
           deve stare sotto il banner meteo per non coprirlo. */}
-      <div className="pointer-events-none fixed right-3 top-[140px] z-[15]">
+      <div className="pointer-events-none fixed right-3 top-[96px] z-[15]">
         <WheelTrigger
           spinsLeft={wheel.spinsLeft}
           maxSpins={wheel.maxSpins}
