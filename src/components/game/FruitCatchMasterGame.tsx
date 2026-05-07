@@ -1461,24 +1461,30 @@ function FruitCatchMasterGame() {
       const field = fieldRef.current;
       if (!field) return;
       const rect = field.getBoundingClientRect();
-      // Try up to 6 candidate landing spots and pick the first that doesn't
-      // overlap any meteorite already sitting on the floor — so they don't
-      // pile up in the same column.
+      // 60% small, 30% medium, 10% large.
       const r = Math.random();
+      const isLarge = r >= 0.9;
       const size = r < 0.6 ? 50 : r < 0.9 ? 90 : 140;
       const w = size * 0.8;
-      const PAD = 16; // extra px gap so they're clearly separated
+      // Large meteorites: pick a non-overlapping landing spot so obstacles
+      // don't pile up. Small/medium just shatter, so any column is fine.
+      const PAD = 16;
       let chosen: { x: number; slideDx: number } | null = null;
-      for (let attempt = 0; attempt < 6; attempt++) {
+      const tries = isLarge ? 6 : 1;
+      for (let attempt = 0; attempt < tries; attempt++) {
         const slideDx = (Math.random() - 0.5) * 200;
         const x = 16 + Math.random() * Math.max(40, rect.width - size - 32 - Math.abs(slideDx));
+        if (!isLarge) { chosen = { x, slideDx }; break; }
         const landingCx = x + slideDx + (size - w) / 2;
         const overlaps = landedMeteoritesRef.current.some((m) =>
           landingCx < m.x + m.w + PAD && landingCx + w + PAD > m.x,
         );
         if (!overlaps) { chosen = { x, slideDx }; break; }
       }
-      if (!chosen) return; // skip this tick — floor is too crowded
+      if (!chosen) return;
+      // Land so the meteorite bottom touches the ground band (≈90px from bottom).
+      // Large = solid obstacle; small/med = instant shatter.
+      const groundOffset = isLarge ? 96 : 70;
       const id = nextIdRef.current++;
       setMeteorites((prev) => [
         ...prev,
@@ -1486,14 +1492,18 @@ function FruitCatchMasterGame() {
           id,
           x: chosen.x,
           startY: -size - 20,
-          endY: rect.height - 64 - size,
+          endY: rect.height - groundOffset - size,
           size,
           slideDx: chosen.slideDx,
-          fallDuration: (size >= 140 ? 1.4 : size >= 90 ? 1.2 : 1.0) + Math.random() * 0.3,
+          fallDuration:
+            (isLarge ? 1.6 : size >= 90 ? 0.95 : 0.75) + Math.random() * 0.2,
+          isLarge,
         },
       ]);
     };
-    const id = window.setInterval(spawn, 1500);
+    // Large are rare — driven by per-spawn 10% probability above.
+    // Small/medium are frequent.
+    const id = window.setInterval(spawn, 900);
     return () => clearInterval(id);
   }, [started, level.biome]);
 
@@ -1506,9 +1516,17 @@ function FruitCatchMasterGame() {
   }, [level.biome]);
 
   const handleMeteoriteLanded = useCallback(
-    (_id: number) => {
-      // ⛔ Funzione "ostacoli permanenti" temporaneamente disattivata:
-      // i meteoriti spariscono dopo l'atterraggio senza bloccare il pavimento.
+    (id: number) => {
+      // Only large meteorites become solid floor obstacles.
+      setMeteorites((prev) => {
+        const m = prev.find((x) => x.id === id);
+        if (m && m.isLarge) {
+          const w = m.size * 0.8;
+          const x = m.x + m.slideDx + (m.size - w) / 2;
+          setLandedMeteorites((ls) => [...ls, { id, x, w }]);
+        }
+        return prev;
+      });
     },
     [],
   );
