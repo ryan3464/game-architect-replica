@@ -34,6 +34,7 @@ import { MeteoriteHazard, type MeteoriteState } from "@/components/game/Meteorit
 import { FrostOverlay } from "@/components/game/FrostOverlay";
 import { AshRain } from "@/components/game/AshRain";
 import { ShadowCemeteryLayer } from "@/components/game/ShadowCemeteryLayer";
+import { BananaBiomeLayer } from "@/components/game/BananaBiomeLayer";
 import { sfx } from "@/lib/sfx";
 import { LEVELS, getLevel } from "@/lib/levels";
 import { useSettings } from "@/lib/settings";
@@ -431,6 +432,7 @@ function FruitCatchMasterGame() {
         golden: isGolden,
         lava: false,
         slideDx: level.biome === "tundra" ? (Math.random() - 0.5) * 140 : 0,
+        windSway: level.fruitKey === "banana",
       },
     ]);
   }, [level, goldenPackOwned, goldenPackEquipped, slowmoEndAt, collected]);
@@ -2107,7 +2109,8 @@ function FruitCatchMasterGame() {
         animate={fieldControls}
         className="game-shake-root relative h-screen w-screen overflow-hidden touch-none"
         style={{
-          backgroundImage: `url(${level.bgImg})`,
+          backgroundImage: level.fruitKey === "banana" ? undefined : `url(${level.bgImg})`,
+          backgroundColor: level.fruitKey === "banana" ? "#0a1a12" : undefined,
           backgroundSize:
             level.biome === "stormpeak" ? "auto 115%" : "cover",
           backgroundPosition:
@@ -2175,6 +2178,16 @@ function FruitCatchMasterGame() {
           />
         )}
 
+        {/* 🍌 Banana biome — high-end parallax / vignette / particles */}
+        {started && (
+          <BananaBiomeLayer
+            active={level.fruitKey === "banana"}
+            bgImg={level.bgImg}
+            fieldRef={fieldRef}
+            bucketRef={bucketRef}
+            fruits={fruits}
+          />
+        )}
         {/* Innovative biome overlay (volcano / tundra / space) */}
         {started && <BiomeOverlay biome={level.biome} />}
         {/* 🌋 Pioggia di cenere — bioma vulcano */}
@@ -2245,6 +2258,7 @@ function FruitCatchMasterGame() {
             {/* Always render the tree so its image starts loading behind the
                 level loader; once the loader fades out the tree is fully ready
                 and there's no visible "pop in". */}
+            <div className={level.fruitKey === "banana" ? "banana-tree-sway contents" : "contents"}>
             <FruitTree
               ref={treeRef}
               onClick={handleTreeClick}
@@ -2270,6 +2284,7 @@ function FruitCatchMasterGame() {
                               : undefined
               }
             />
+            </div>
             <AnimatePresence>
               {fruits.map((f) => (
                 <FallingFruit

@@ -23,6 +23,8 @@ export interface FruitState {
   snowball?: boolean;
   /** Optional horizontal slide (px) applied after landing — used for tundra ice. */
   slideDx?: number;
+  /** When true, fruit oscillates sinusoidally while falling (wind effect). */
+  windSway?: boolean;
 }
 
 interface Props {
@@ -237,26 +239,43 @@ function NormalFalling({ fruit, fallDistance, paused, controls, startedAtRef, el
   }, [paused, controls, fallDistance, fruit.duration, fruit.rotate, fruit.status, fruit.id, totalDuration, onLanded, startedAtRef, elapsedAtPauseRef]);
 
   return (
-    <motion.img
-      id={`fruit-${fruit.id}`}
-      src={fruit.img}
-      alt=""
-      width={fruit.size}
-      height={fruit.size}
-      draggable={false}
-      className="pointer-events-none absolute z-20 select-none"
+    <motion.div
+      className="pointer-events-none absolute z-20"
       style={{
         left: fruit.x,
         top: fruit.startY,
         width: fruit.size,
         height: fruit.size,
-        filter: fruit.golden
-          ? "drop-shadow(0 0 14px rgba(255,200,40,0.95))"
-          : undefined,
+        animation: fruit.windSway ? `fruitWindSway 2.4s ease-in-out infinite` : undefined,
       }}
       initial={{ y: 0, rotate: 0, opacity: 0, scale: 0.5 }}
       animate={controls}
-    />
+    >
+      <img
+        id={`fruit-${fruit.id}`}
+        src={fruit.img}
+        alt=""
+        width={fruit.size}
+        height={fruit.size}
+        draggable={false}
+        className="select-none"
+        style={{
+          width: fruit.size,
+          height: fruit.size,
+          filter: fruit.golden
+            ? "drop-shadow(0 0 14px rgba(255,200,40,0.95)) drop-shadow(0 6px 4px rgba(0,0,0,0.25))"
+            : "drop-shadow(0 6px 4px rgba(0,0,0,0.28))",
+        }}
+      />
+      {fruit.windSway && (
+        <style>{`
+          @keyframes fruitWindSway {
+            0%, 100% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+          }
+        `}</style>
+      )}
+    </motion.div>
   );
 }
 
