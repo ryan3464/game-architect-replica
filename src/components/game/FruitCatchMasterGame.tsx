@@ -34,6 +34,7 @@ import { MeteoriteHazard, type MeteoriteState } from "@/components/game/Meteorit
 import { FrostOverlay } from "@/components/game/FrostOverlay";
 import { AshRain } from "@/components/game/AshRain";
 import { ShadowCemeteryLayer } from "@/components/game/ShadowCemeteryLayer";
+import { BananaBiomeLayer } from "@/components/game/BananaBiomeLayer";
 import { sfx } from "@/lib/sfx";
 import { LEVELS, getLevel } from "@/lib/levels";
 import { useSettings } from "@/lib/settings";
