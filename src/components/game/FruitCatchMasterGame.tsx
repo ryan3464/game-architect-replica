@@ -2178,6 +2178,16 @@ function FruitCatchMasterGame() {
           />
         )}
 
+        {/* 🍌 Banana biome — high-end parallax / vignette / particles */}
+        {started && (
+          <BananaBiomeLayer
+            active={level.fruitKey === "banana"}
+            bgImg={level.bgImg}
+            fieldRef={fieldRef}
+            bucketRef={bucketRef}
+            fruits={fruits}
+          />
+        )}
         {/* Innovative biome overlay (volcano / tundra / space) */}
         {started && <BiomeOverlay biome={level.biome} />}
         {/* 🌋 Pioggia di cenere — bioma vulcano */}
