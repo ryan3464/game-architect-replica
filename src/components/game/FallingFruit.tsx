@@ -23,8 +23,6 @@ export interface FruitState {
   snowball?: boolean;
   /** Optional horizontal slide (px) applied after landing — used for tundra ice. */
   slideDx?: number;
-  /** When true, fruit oscillates sinusoidally while falling (wind effect). */
-  windSway?: boolean;
 }
 
 interface Props {
@@ -246,7 +244,6 @@ function NormalFalling({ fruit, fallDistance, paused, controls, startedAtRef, el
         top: fruit.startY,
         width: fruit.size,
         height: fruit.size,
-        animation: fruit.windSway ? `fruitWindSway 2.4s ease-in-out infinite` : undefined,
       }}
       initial={{ y: 0, rotate: 0, opacity: 0, scale: 0.5 }}
       animate={controls}
@@ -267,14 +264,6 @@ function NormalFalling({ fruit, fallDistance, paused, controls, startedAtRef, el
             : "drop-shadow(0 6px 4px rgba(0,0,0,0.28))",
         }}
       />
-      {fruit.windSway && (
-        <style>{`
-          @keyframes fruitWindSway {
-            0%, 100% { transform: translateX(-8px); }
-            50% { transform: translateX(8px); }
-          }
-        `}</style>
-      )}
     </motion.div>
   );
 }
