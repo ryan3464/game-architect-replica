@@ -41,6 +41,10 @@ import bgTundra from "@/assets/bg-tundra-integrated.jpg";
 import bgTundraPremium from "@/assets/bg-tundra-premium.jpg";
 import bgSpace from "@/assets/bg-space-premium.jpg";
 import bgStormpeak from "@/assets/bg-stormpeak-integrated.jpg";
+import bgShadowCemetery from "@/assets/bg-shadow-cemetery.jpg";
+import lithicHeartImg from "@/assets/fruit-lithicheart.png";
+import lithicHeartGoldImg from "@/assets/fruit-lithicheart-gold.png";
+import grinningSkullImg from "@/assets/hazard-grinning-skull.png";
 
 export type FruitKey =
   | "banana"
@@ -52,10 +56,11 @@ export type FruitKey =
   | "magma"
   | "frostberry"
   | "thunderberry"
-  | "starberry";
+  | "starberry"
+  | "lithicheart";
 
 /** Optional biome modifier that activates special gameplay mechanics. */
-export type BiomeKind = "volcano" | "tundra" | "stormpeak" | "space";
+export type BiomeKind = "volcano" | "tundra" | "stormpeak" | "space" | "shadowcemetery";
 
 // NOTE: stormpeak uses the tundra tree art as a temporary placeholder until a
 // dedicated thunderpeak tree asset exists. The bg already integrates a tree.
@@ -196,6 +201,21 @@ export const LEVELS: LevelDef[] = [
     rottenChance: 0,
     biome: "space",
     gravityMultiplier: 1.8,
+  },
+  {
+    id: 9,
+    fruitKey: "lithicheart",
+    fruitImg: lithicHeartImg,
+    fruitRottenImg: grinningSkullImg,
+    fruitGoldImg: lithicHeartGoldImg,
+    treeImg: bgShadowCemetery, // tree integrated in bg, value unused visually
+    bgImg: bgShadowCemetery,
+    target: 10,
+    fallChance: 0.6,
+    fruitSize: 52,
+    rottenChance: 0.15,
+    biome: "shadowcemetery",
+    integratedTreeInBackground: true,
   },
 ];
 
