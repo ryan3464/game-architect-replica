@@ -105,4 +105,12 @@ export const sfx = {
     setTimeout(() => blip(660, 0.12, "sine", 0.08), 80);
     setTimeout(() => blip(880, 0.16, "sine", 0.1), 180);
   },
+  bell: () => {
+    // Funeral bell toll — low triangle with long decay
+    blip(196, 1.2, "triangle", 0.18);
+    setTimeout(() => blip(165, 1.0, "sine", 0.12), 200);
+  },
+  whisper: () => {
+    blip(110, 0.4, "sawtooth", 0.04);
+  },
 };
