@@ -2109,7 +2109,8 @@ function FruitCatchMasterGame() {
         animate={fieldControls}
         className="game-shake-root relative h-screen w-screen overflow-hidden touch-none"
         style={{
-          backgroundImage: `url(${level.bgImg})`,
+          backgroundImage: level.fruitKey === "banana" ? undefined : `url(${level.bgImg})`,
+          backgroundColor: level.fruitKey === "banana" ? "#0a1a12" : undefined,
           backgroundSize:
             level.biome === "stormpeak" ? "auto 115%" : "cover",
           backgroundPosition:
