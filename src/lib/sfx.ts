@@ -106,11 +106,46 @@ export const sfx = {
     setTimeout(() => blip(880, 0.16, "sine", 0.1), 180);
   },
   bell: () => {
-    // Funeral bell toll — low triangle with long decay
-    blip(196, 1.2, "triangle", 0.18);
-    setTimeout(() => blip(165, 1.0, "sine", 0.12), 200);
+    // Deep gong — low sine with very long decay, half master volume
+    const c = getCtx();
+    if (!c || !masterGain) return;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.25 * 0.5, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 2.4);
+    g.connect(masterGain);
+    [55, 82.5, 110, 165].forEach((f, i) => {
+      const o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f, c.currentTime);
+      const og = c.createGain();
+      og.gain.value = i === 0 ? 1 : 0.4 / i;
+      o.connect(og).connect(g);
+      o.start();
+      o.stop(c.currentTime + 2.4);
+    });
+  },
+  hiss: () => {
+    // Electric hiss for the eye ray — filtered noise, half volume
+    const c = getCtx();
+    if (!c || !masterGain) return;
+    const len = 0.6;
+    const buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.5;
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const bp = c.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 4500;
+    bp.Q.value = 8;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.18 * 0.5, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + len);
+    src.connect(bp).connect(g).connect(masterGain);
+    src.start();
+    src.stop(c.currentTime + len);
   },
   whisper: () => {
-    blip(110, 0.4, "sawtooth", 0.04);
+    /* deprecated — kept as no-op for backward compat */
   },
 };
