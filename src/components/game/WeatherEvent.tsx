@@ -237,7 +237,7 @@ export function WeatherBanner({ kind, remainingSeconds, label }: WeatherBannerPr
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: -60, opacity: 0, scale: 0.85 }}
           transition={{ type: "spring", stiffness: 280, damping: 22 }}
-          className="pointer-events-none absolute right-2 top-24 z-20"
+          className="pointer-events-none absolute right-2 top-[160px] z-20"
         >
           <div
             className={`flex flex-col items-center gap-0.5 rounded-2xl bg-gradient-to-b ${getWeatherMeta(
