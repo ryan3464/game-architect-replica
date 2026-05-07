@@ -2258,6 +2258,7 @@ function FruitCatchMasterGame() {
             {/* Always render the tree so its image starts loading behind the
                 level loader; once the loader fades out the tree is fully ready
                 and there's no visible "pop in". */}
+            <div className={level.fruitKey === "banana" ? "banana-tree-sway contents" : "contents"}>
             <FruitTree
               ref={treeRef}
               onClick={handleTreeClick}
@@ -2283,6 +2284,7 @@ function FruitCatchMasterGame() {
                               : undefined
               }
             />
+            </div>
             <AnimatePresence>
               {fruits.map((f) => (
                 <FallingFruit
