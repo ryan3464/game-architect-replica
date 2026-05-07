@@ -6,10 +6,12 @@ export interface MeteoriteState {
   id: number;
   x: number;        // landing X (px from field left)
   startY: number;   // initial top (negative)
-  endY: number;     // ground Y
+  endY: number;     // ground Y (top of meteorite when landed)
   size: number;     // px
   slideDx: number;  // px diagonal slide
   fallDuration: number;
+  /** Large meteorites act as solid obstacles for ~3s before fading. */
+  isLarge?: boolean;
 }
 
 interface Props {
@@ -20,19 +22,18 @@ interface Props {
 }
 
 /**
- * Pure-CSS meteorite. Falls diagonally with a glowing trail, "lands" with a
- * squash + smoke burst + screen shake, then sits as a physical obstacle for
- * ~4s before scaling down and fading out.
+ * Pure-CSS meteorite. Falls diagonally with a glowing trail.
+ * - Small/Medium: shatter instantly on impact (particles + remove).
+ * - Large: lands as a solid obstacle for 3 seconds, then fades.
  */
 export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: Props) {
-  const [phase, setPhase] = useState<"falling" | "landed" | "fading">("falling");
+  const [phase, setPhase] = useState<"falling" | "landed" | "fading" | "shatter">("falling");
 
-  // Drive landing → fading → expire timeline.
+  // Falling -> landed/shatter timeline
   useEffect(() => {
     if (phase !== "falling") return;
     if (paused) return;
     const t = window.setTimeout(() => {
-      setPhase("landed");
       onLanded(meteor.id);
       // Trigger global screen shake
       const root = document.querySelector(".game-shake-root");
@@ -40,19 +41,33 @@ export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: 
         root.classList.add("meteor-shake");
         window.setTimeout(() => root.classList.remove("meteor-shake"), 220);
       }
+      if (meteor.isLarge) {
+        setPhase("landed");
+      } else {
+        setPhase("shatter");
+      }
     }, meteor.fallDuration * 1000);
     return () => clearTimeout(t);
-  }, [phase, paused, meteor.fallDuration, meteor.id, onLanded]);
+  }, [phase, paused, meteor.fallDuration, meteor.id, meteor.isLarge, onLanded]);
 
+  // Large meteorites: 3s solid, then fade & expire
   useEffect(() => {
     if (phase !== "landed") return;
     if (paused) return;
-    const tFade = window.setTimeout(() => setPhase("fading"), 1000);
-    const tEnd = window.setTimeout(() => onExpire(meteor.id), 1400);
+    const tFade = window.setTimeout(() => setPhase("fading"), 3000);
+    const tEnd = window.setTimeout(() => onExpire(meteor.id), 3500);
     return () => {
       clearTimeout(tFade);
       clearTimeout(tEnd);
     };
+  }, [phase, paused, meteor.id, onExpire]);
+
+  // Shatter (small/medium): brief particle burst then expire
+  useEffect(() => {
+    if (phase !== "shatter") return;
+    if (paused) return;
+    const tEnd = window.setTimeout(() => onExpire(meteor.id), 500);
+    return () => clearTimeout(tEnd);
   }, [phase, paused, meteor.id, onExpire]);
 
   const fallDistance = meteor.endY - meteor.startY;
@@ -73,7 +88,6 @@ export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: 
           }}
           style={{ width: meteor.size, height: meteor.size, position: "relative" }}
         >
-          {/* Glowing trail behind the meteorite */}
           <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2"
@@ -88,7 +102,6 @@ export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: 
               pointerEvents: "none",
             }}
           />
-          {/* Original meteorite sprite */}
           <img
             src={meteoriteImg}
             alt=""
@@ -108,7 +121,46 @@ export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: 
     );
   }
 
-  // LANDED + FADING — physical obstacle on the ground (sprite kept)
+  // SHATTER: small / medium meteorites — burst into particles
+  if (phase === "shatter") {
+    const shards = Array.from({ length: 10 });
+    return (
+      <div
+        className="pointer-events-none absolute z-[22] select-none"
+        style={{
+          left: meteor.x + meteor.slideDx,
+          top: meteor.endY,
+          width: meteor.size,
+          height: meteor.size,
+        }}
+      >
+        {shards.map((_, i) => {
+          const angle = (i / shards.length) * Math.PI * 2;
+          const dist = 40 + Math.random() * 30;
+          const dx = Math.cos(angle) * dist;
+          const dy = Math.sin(angle) * dist - 10;
+          return (
+            <motion.span
+              key={i}
+              className="absolute left-1/2 top-1/2 rounded-full"
+              style={{
+                width: 6 + (i % 3) * 2,
+                height: 6 + (i % 3) * 2,
+                background:
+                  "radial-gradient(circle, #ffb066 0%, #c2410c 60%, transparent 100%)",
+                filter: "drop-shadow(0 0 6px rgba(255,140,60,0.9))",
+              }}
+              initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+              animate={{ x: dx, y: dy, opacity: 0, scale: 0.3 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  // LANDED + FADING — large meteorite acts as solid obstacle for 3s
   const isFading = phase === "fading";
   return (
     <motion.div
@@ -122,7 +174,7 @@ export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: 
       }
       transition={
         isFading
-          ? { duration: 0.4, ease: "easeIn" }
+          ? { duration: 0.5, ease: "easeIn" }
           : { duration: 0.35, ease: "easeOut", times: [0, 0.5, 1] }
       }
     >
@@ -170,7 +222,19 @@ export function MeteoriteHazard({ meteor, onLanded, onExpire, paused = false }: 
             />
           );
         })}
-      {/* Impact crater shadow underneath */}
+      {/* Countdown ring — visual hint that it's about to disappear */}
+      {!isFading && (
+        <motion.div
+          className="absolute -inset-2 rounded-full"
+          style={{
+            border: "3px solid rgba(255,140,60,0.85)",
+            boxShadow: "0 0 18px rgba(255,140,60,0.6)",
+          }}
+          initial={{ opacity: 0.9, scale: 1 }}
+          animate={{ opacity: [0.9, 0.4, 0.9], scale: [1, 1.06, 1] }}
+          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
       <div
         className="absolute"
         style={{
