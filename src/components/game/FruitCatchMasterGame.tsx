@@ -158,7 +158,7 @@ function FruitCatchMasterGame() {
   const [slowmoRemaining, setSlowmoRemaining] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [pendingLevelId, setPendingLevelId] = useState<number | null>(null);
-  const [biomeIntro, setBiomeIntro] = useState<null | "volcano" | "tundra" | "stormpeak" | "space">(null);
+  const [biomeIntro, setBiomeIntro] = useState<null | "volcano" | "tundra" | "stormpeak" | "space" | "shadowcemetery">(null);
   const [weatherIntro, setWeatherIntro] = useState<WeatherKind | null>(null);
 
   // Weather event system
