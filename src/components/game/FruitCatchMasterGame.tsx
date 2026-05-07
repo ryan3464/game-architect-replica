@@ -431,6 +431,7 @@ function FruitCatchMasterGame() {
         golden: isGolden,
         lava: false,
         slideDx: level.biome === "tundra" ? (Math.random() - 0.5) * 140 : 0,
+        windSway: level.fruitKey === "banana",
       },
     ]);
   }, [level, goldenPackOwned, goldenPackEquipped, slowmoEndAt, collected]);
