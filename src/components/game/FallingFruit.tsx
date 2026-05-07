@@ -23,6 +23,8 @@ export interface FruitState {
   snowball?: boolean;
   /** Optional horizontal slide (px) applied after landing — used for tundra ice. */
   slideDx?: number;
+  /** When true, fruit oscillates sinusoidally while falling (wind effect). */
+  windSway?: boolean;
 }
 
 interface Props {
