@@ -33,6 +33,7 @@ import { LightningStrike } from "@/components/game/LightningStrike";
 import { MeteoriteHazard, type MeteoriteState } from "@/components/game/MeteoriteHazard";
 import { FrostOverlay } from "@/components/game/FrostOverlay";
 import { AshRain } from "@/components/game/AshRain";
+import { ShadowCemeteryLayer } from "@/components/game/ShadowCemeteryLayer";
 import { sfx } from "@/lib/sfx";
 import { LEVELS, getLevel } from "@/lib/levels";
 import { useSettings } from "@/lib/settings";
@@ -2449,6 +2450,30 @@ function FruitCatchMasterGame() {
                 onExpire={handleMeteoriteExpire}
               />
             ))}
+
+            {/* 🕯️ Cimitero delle Ombre — luce dinamica + Occhio + Mietitore + Mani Zombie */}
+            {level.biome === "shadowcemetery" && (
+              <ShadowCemeteryLayer
+                active={true}
+                paused={anyModalOpen || docHidden}
+                fieldRef={fieldRef}
+                bucketRef={bucketRef}
+                bucketWidth={bucketWidth}
+                fruits={fruits}
+                onFruitDestroyed={(id) => {
+                  setFruits((prev) => prev.filter((f) => f.id !== id));
+                  // grey smoke puff at last known position
+                  const f = fruits.find((x) => x.id === id);
+                  if (f) {
+                    const burstId = nextIdRef.current++;
+                    setBursts((p) => [...p, { id: burstId, x: f.x + f.size / 2, y: 200 }]);
+                    setTimeout(() => setBursts((p) => p.filter((b) => b.id !== burstId)), 700);
+                  }
+                }}
+                onReaperHit={() => applyDamage(1)}
+                onZombieGrab={() => setFrozenUntil(performance.now() + 2500)}
+              />
+            )}
 
             {/* Stormpeak: lightning strikes (warning + bolt) */}
             {lightnings.map((l) => {
